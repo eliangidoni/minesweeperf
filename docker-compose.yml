@@ -1,0 +1,18 @@
+version: '2'
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_DB=minesweeper
+  api:
+    build: .
+    environment:
+      - APP_SETTINGS=config.DevelopmentConfig
+      - DATABASE_URL=postgresql://postgres@db:5432/minesweeper
+    command: python run.py 0.0.0.0:5000
+    volumes:
+      - .:/project
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
