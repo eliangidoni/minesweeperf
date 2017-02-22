@@ -1,7 +1,7 @@
 # minesweeper
 
 Minesweeper game implementation as a JSON REST service.
-Implemented with Flask micro framework and PostgreSQL.
+Implemented with Flask micro framework and SQLAlchemy.
 
 There is a Go client library in https://github.com/eliangidoni/minesweepergo
 ##Missing features##
