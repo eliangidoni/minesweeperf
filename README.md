@@ -1,7 +1,7 @@
 # minesweeper
 
 Minesweeper game implementation as a JSON REST service.
-Implemented with Django REST framework and PostgreSQL.
+Implemented with Flask micro framework and PostgreSQL.
 
 There is a Go client library in https://github.com/eliangidoni/minesweepergo
 ##Missing features##
@@ -9,15 +9,15 @@ There is a Go client library in https://github.com/eliangidoni/minesweepergo
 - Multiple user accounts
 
 ##Development environment
-Requires Docker and Docker Composer. Scripts to create/start/stop the service are in `/scripts/`
+Requires Docker and Docker Composer.
 
 ##First Run
 ```
-python manage.py migrate auth
-python manage.py migrate
-python manage.py createsuperuser
+python manage.py db init
+python manage.py db migrate
+python manage.py db upgrade
 ```
 ##Service start
 ```
-python manage.py runserver
+python run.py 0.0.0.0:8000
 ```
