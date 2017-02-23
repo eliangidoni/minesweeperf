@@ -13,20 +13,6 @@ def index():
     return render_template('index.html', urls=urls)
 
 
-@app.route('/test/', methods=['POST'])
-def api_test():
-    """
-    Do nothing just testing *blabla*.
-    """
-    args = request.get_json()
-    resp = {
-        'hello': 'world',
-        'number': 3,
-        'args': args
-    }
-    return jsonify(resp)
-
-
 @app.route('/api/v1/games/state/', methods=['GET'])
 def api_state():
     """
