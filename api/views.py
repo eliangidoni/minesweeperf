@@ -55,7 +55,7 @@ def api_new():
     board, player_board = models.Game.new_boards(rows, columns, mines)
 
     user = models.User.query.limit(1).all()  # Hack to use a single user for now.
-    if user is None:
+    if not user:
         user = models.User("test", "test", "test@test.com")
         db.session.add(user)
         db.session.commit()
