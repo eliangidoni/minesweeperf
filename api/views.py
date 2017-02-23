@@ -1,5 +1,7 @@
 from flask import abort, request, jsonify, render_template, current_app
-from api import app
+from api import app, db
+import models
+import datetime
 
 
 @app.route('/')
@@ -11,7 +13,7 @@ def index():
     return render_template('index.html', urls=urls)
 
 
-@app.route('/test', methods=['POST'])
+@app.route('/test/', methods=['POST'])
 def api_test():
     """
     Do nothing just testing *blabla*.
@@ -25,7 +27,7 @@ def api_test():
     return jsonify(resp)
 
 
-@app.route('/api/v1/games/state', methods=['GET'])
+@app.route('/api/v1/games/state/', methods=['GET'])
 def api_state():
     """
     **Returns** the game object. (GET method)
@@ -49,10 +51,12 @@ def api_state():
     - **x** : to indicate the cell has a mine.
     - an integer (0-8) to indicate the number of adjacent mines to the cell.
     """
-    return jsonify({})
+    args = request.get_json()
+    game = models.Game.query.get(int(args['game_id']))
+    return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/new', methods=['POST'])
+@app.route('/api/v1/games/new/', methods=['POST'])
 def api_new():
     """
     Creates a new game. (POST method)
@@ -62,10 +66,31 @@ def api_new():
         - columns (number of columns)
         - mines (number of mines, should be less than the board size)
     """
-    return jsonify({})
+    args = request.get_json()
+    rows = int(args['rows'])
+    columns = int(args['columns'])
+    mines = int(args['mines'])
+    board, player_board = models.Game.new_boards(rows, columns, mines)
+
+    user = models.User.query.limit(1).all()  # Hack to use a single user for now.
+    if user is None:
+        user = models.User("test", "test", "test@test.com")
+        db.session.add(user)
+        db.session.commit()
+        user = models.User.query.limit(1).all()
+    game = models.Game()
+    game.title = 'Game for user %s' % (user[0].first_name)
+    game.board = board
+    game.player_board = player_board
+    game.state = models.Game.STATE_NEW
+    game.player_id = user[0].id
+    game.resumed_timestamp = datetime.datetime.utcnow()
+    db.session.add(game)
+    db.session.commit()
+    return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/pause', methods=['POST'])
+@app.route('/api/v1/games/pause/', methods=['POST'])
 def api_pause():
     """
     Pauses a given game (stops time tracking). (POST method)
@@ -73,10 +98,12 @@ def api_pause():
     Arguments:
         - game_id
     """
-    return jsonify({})
+    args = request.get_json()
+    game = models.Game.query.get(int(args['game_id']))
+    return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/resume', methods=['POST'])
+@app.route('/api/v1/games/resume/', methods=['POST'])
 def api_resume():
     """
     Resumes a given game (starts time tracking). (POST method)
@@ -84,10 +111,12 @@ def api_resume():
     Arguments:
         - game_id
     """
-    return jsonify({})
+    args = request.get_json()
+    game = models.Game.query.get(int(args['game_id']))
+    return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/mark_as_flag', methods=['POST'])
+@app.route('/api/v1/games/mark_as_flag/', methods=['POST'])
 def api_mark_as_flag():
     """
     Set a flag mark in a given cell. (POST method)
@@ -97,10 +126,18 @@ def api_mark_as_flag():
         - x (cell index)
         - y (cell index)
     """
-    return jsonify({})
+    args = request.get_json()
+    gameid = int(args['game_id'])
+    x = int(args['x'])
+    y = int(args['y'])
+
+    game = models.Game.query.get(gameid)
+    game.mark_flag_at(x, y)
+    db.session.commit()
+    return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/mark_as_question', methods=['POST'])
+@app.route('/api/v1/games/mark_as_question/', methods=['POST'])
 def api_mark_as_question():
     """
     Set a question mark in a given cell. (POST method)
@@ -110,10 +147,18 @@ def api_mark_as_question():
         - x (cell index)
         - y (cell index)
     """
-    return jsonify({})
+    args = request.get_json()
+    gameid = int(args['game_id'])
+    x = int(args['x'])
+    y = int(args['y'])
+
+    game = models.Game.query.get(gameid)
+    game.mark_question_at(x, y)
+    db.session.commit()
+    return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/reveal', methods=['POST'])
+@app.route('/api/v1/games/reveal/', methods=['POST'])
 def api_reveal():
     """
     Reveals a given cell. (POST method)
@@ -123,4 +168,16 @@ def api_reveal():
         - x (cell index)
         - y (cell index)
     """
-    return jsonify({})
+    args = request.get_json()
+    gameid = int(args['game_id'])
+    x = int(args['x'])
+    y = int(args['y'])
+
+    game = models.Game.query.get(gameid)
+    game.reveal_at(x, y)
+    if game.is_mine_at(x, y):
+        game.state = models.Game.STATE_LOST
+    elif game.is_all_revealed():
+        game.state = models.Game.STATE_WON
+    db.session.commit()
+    return jsonify(game.serialize())
