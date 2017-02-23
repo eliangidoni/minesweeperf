@@ -162,7 +162,7 @@ class Game(db.Model):
         self.player_board = json.dumps(board)
 
     def serialize(self):
-        obj = {'id': self.id,
+        obj = {'id': str(self.id),
                'title': self.title,
                'state': self._get_state(),
                'board_view': self._get_board_view(),
