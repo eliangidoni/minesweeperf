@@ -13,13 +13,10 @@ def index():
     return render_template('index.html', urls=urls)
 
 
-@app.route('/api/v1/games/state/', methods=['GET'])
-def api_state():
+@app.route('/api/v1/games/<int:gameid>/state/', methods=['GET'])
+def api_state(gameid):
     """
     **Returns** the game object. (GET method)
-    Arguments:
-        - game_id
-
     The current `state` can be:
 
     - **new** : for a new game.
@@ -37,8 +34,7 @@ def api_state():
     - **x** : to indicate the cell has a mine.
     - an integer (0-8) to indicate the number of adjacent mines to the cell.
     """
-    args = request.get_json()
-    game = models.Game.query.get(int(args['game_id']))
+    game = models.Game.query.get(gameid)
     return jsonify(game.serialize())
 
 
@@ -76,44 +72,36 @@ def api_new():
     return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/pause/', methods=['POST'])
-def api_pause():
+@app.route('/api/v1/games/<int:gameid>/pause/', methods=['POST'])
+def api_pause(gameid):
     """
     Pauses a given game (stops time tracking). (POST method)
     **Returns** the game state.
-    Arguments:
-        - game_id
     """
-    args = request.get_json()
-    game = models.Game.query.get(int(args['game_id']))
+    game = models.Game.query.get(gameid)
     return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/resume/', methods=['POST'])
-def api_resume():
+@app.route('/api/v1/games/<int:gameid>/resume/', methods=['POST'])
+def api_resume(gameid):
     """
     Resumes a given game (starts time tracking). (POST method)
     **Returns** the game state.
-    Arguments:
-        - game_id
     """
-    args = request.get_json()
-    game = models.Game.query.get(int(args['game_id']))
+    game = models.Game.query.get(gameid)
     return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/mark_as_flag/', methods=['POST'])
-def api_mark_as_flag():
+@app.route('/api/v1/games/<int:gameid>/mark_as_flag/', methods=['POST'])
+def api_mark_as_flag(gameid):
     """
     Set a flag mark in a given cell. (POST method)
     **Returns** the game state.
     Arguments:
-        - game_id
         - x (cell index)
         - y (cell index)
     """
     args = request.get_json()
-    gameid = int(args['game_id'])
     x = int(args['x'])
     y = int(args['y'])
 
@@ -123,18 +111,16 @@ def api_mark_as_flag():
     return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/mark_as_question/', methods=['POST'])
-def api_mark_as_question():
+@app.route('/api/v1/games/<int:gameid>/mark_as_question/', methods=['POST'])
+def api_mark_as_question(gameid):
     """
     Set a question mark in a given cell. (POST method)
     **Returns** the game state.
     Arguments:
-        - game_id
         - x (cell index)
         - y (cell index)
     """
     args = request.get_json()
-    gameid = int(args['game_id'])
     x = int(args['x'])
     y = int(args['y'])
 
@@ -144,18 +130,16 @@ def api_mark_as_question():
     return jsonify(game.serialize())
 
 
-@app.route('/api/v1/games/reveal/', methods=['POST'])
-def api_reveal():
+@app.route('/api/v1/games/<int:gameid>/reveal/', methods=['POST'])
+def api_reveal(gameid):
     """
     Reveals a given cell. (POST method)
     **Returns** the game state.
     Arguments:
-        - game_id
         - x (cell index)
         - y (cell index)
     """
     args = request.get_json()
-    gameid = int(args['game_id'])
     x = int(args['x'])
     y = int(args['y'])
 
